@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  SUSPENDED
+  CANCELLED
+  PENDING
+}
+
+enum PlanInterval {
+  MONTHLY
+  YEARLY
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  passwordHash  String
+  name          String?
+  role          UserRole       @default(USER)
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  subscription  Subscription?
+  licenses      License[]
+  adminLogs     AdminLog[]     @relation("AdminLogs")
+  targetLogs    AdminLog[]     @relation("TargetLogs")
+}
+
+model Plan {
+  id            String         @id @default(cuid())
+  name          String
+  slug          String         @unique
+  interval      PlanInterval
+  price         Float
+  currency      String         @default("PKR")
+  deviceLimit   Int            @default(1)
+  features      String         @default("[]")
+  isActive      Boolean        @default(true)
+  sortOrder     Int            @default(0)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id            String             @id @default(cuid())
+  userId        String             @unique
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId        String
+  plan          Plan               @relation(fields: [planId], references: [id])
+  status        SubscriptionStatus @default(PENDING)
+  startDate     DateTime?
+  expiryDate    DateTime?
+  deviceLimit   Int                @default(1)
+  notes         String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+}
+
+model License {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceId      String
+  deviceName    String?
+  issuedAt      DateTime  @default(now())
+  lastValidated DateTime  @default(now())
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([userId, deviceId])
+}
+
+model AppSettings {
+  id                    String   @id @default("default")
+  appName               String   @default("Certificate Manager")
+  whatsappNumber        String   @default("")
+  offlineGraceDays      Int      @default(7)
+  licenseValidityHours  Int      @default(168)
+  updatedAt             DateTime @updatedAt
+}
+
+model AdminLog {
+  id          String   @id @default(cuid())
+  adminId     String
+  admin       User     @relation("AdminLogs", fields: [adminId], references: [id])
+  targetId    String?
+  target      User?    @relation("TargetLogs", fields: [targetId], references: [id])
+  action      String
+  details     String?
+  createdAt   DateTime @default(now())
+}

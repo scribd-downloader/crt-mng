@@ -31,18 +31,24 @@ function LoginForm() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json();
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        setError(`Server returned status ${res.status}. Please check Vercel environment variables & DATABASE_URL.`);
+        return;
+      }
 
       if (!res.ok) {
-        const errMsg = data.message ? `${data.error || "Login failed"} (${data.message})` : (data.error || "Login failed");
+        const errMsg = data.message ? `${data.error || "Login failed"}: ${data.message}` : (data.error || "Login failed");
         setError(errMsg);
         return;
       }
 
       const dest = data.user.role === "ADMIN" ? "/admin" : "/dashboard";
       router.push(dest);
-    } catch {
-      setError("An error occurred. Please try again.");
+    } catch (err: any) {
+      setError(err?.message || "An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }

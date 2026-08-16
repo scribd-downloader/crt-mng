@@ -12,6 +12,18 @@ const loginSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const dbUrl = process.env.DATABASE_URL;
+    if (!dbUrl || (process.env.VERCEL && dbUrl.includes("localhost"))) {
+      return NextResponse.json(
+        {
+          error: "Database configuration error",
+          message:
+            "DATABASE_URL is missing or set to localhost on Vercel. Please configure your PostgreSQL connection string in Vercel Settings -> Environment Variables.",
+        },
+        { status: 500 }
+      );
+    }
+
     await ensureDatabaseSeeded();
 
     const body = await request.json();

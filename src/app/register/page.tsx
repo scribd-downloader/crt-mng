@@ -29,17 +29,23 @@ export default function RegisterPage() {
         body: JSON.stringify({ name, email, password }),
       });
 
-      const data = await res.json();
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        setError(`Server returned status ${res.status}. Please check Vercel environment variables & DATABASE_URL.`);
+        return;
+      }
 
       if (!res.ok) {
-        const errMsg = data.message ? `${data.error || "Registration failed"} (${data.message})` : (data.error || "Registration failed");
+        const errMsg = data.message ? `${data.error || "Registration failed"}: ${data.message}` : (data.error || "Registration failed");
         setError(errMsg);
         return;
       }
 
       router.push("/login?registered=1");
-    } catch {
-      setError("An error occurred. Please try again.");
+    } catch (err: any) {
+      setError(err?.message || "An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }

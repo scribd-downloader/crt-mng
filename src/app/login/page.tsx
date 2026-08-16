@@ -34,7 +34,8 @@ function LoginForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Login failed");
+        const errMsg = data.message ? `${data.error || "Login failed"} (${data.message})` : (data.error || "Login failed");
+        setError(errMsg);
         return;
       }
 

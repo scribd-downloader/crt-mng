@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import { hashPassword } from "@/lib/auth/password";
+import { ensureDatabaseSeeded } from "@/lib/db/seed-helper";
 
 const registerSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -16,12 +17,21 @@ const registerSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    await ensureDatabaseSeeded();
+
     const body = await request.json();
     const parsed = registerSchema.safeParse(body);
 
     if (!parsed.success) {
+      const fieldErrors = parsed.error.flatten().fieldErrors;
+      const firstError =
+        fieldErrors.password?.[0] ||
+        fieldErrors.email?.[0] ||
+        fieldErrors.name?.[0] ||
+        "Validation failed";
+
       return NextResponse.json(
-        { error: "Validation failed", details: parsed.error.flatten().fieldErrors },
+        { error: firstError, details: fieldErrors },
         { status: 400 }
       );
     }
@@ -57,9 +67,9 @@ export async function POST(request: NextRequest) {
       { success: true, user },
       { status: 201 }
     );
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    console.error("Registration error:", message);
+  } catch (error: any) {
+    const message = error?.message || String(error) || "Unknown registration error";
+    console.error("Registration error:", error);
     return NextResponse.json(
       { error: "Registration failed", message },
       { status: 500 }

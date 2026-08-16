@@ -1,5 +1,12 @@
-const CACHE_NAME = "cm-shell-v1";
-const SHELL = ["/", "/login", "/dashboard", "/manifest.json"];
+const CACHE_NAME = "cm-shell-v2";
+const SHELL = [
+  "/",
+  "/login",
+  "/dashboard",
+  "/manifest.json",
+  "/icons/icon-192.png",
+  "/icons/icon-512.png"
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -31,6 +38,14 @@ self.addEventListener("fetch", (event) => {
         }
         return response;
       })
-      .catch(() => caches.match(request).then((r) => r || caches.match("/")))
+      .catch(() =>
+        caches.match(request).then((r) => {
+          if (r) return r;
+          if (request.mode === "navigate" || request.headers.get("accept")?.includes("text/html")) {
+            return caches.match("/");
+          }
+          return new Response(null, { status: 404, statusText: "Not Found" });
+        })
+      )
   );
 });

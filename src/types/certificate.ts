@@ -139,6 +139,13 @@ export interface MarriageCertificateData {
   officeUse: OfficeUseData;
 }
 
+export interface DivorceLocationData {
+  country: BilingualValue;
+  province: BilingualValue;
+  district: BilingualValue;
+  tehsil: BilingualValue;
+}
+
 export interface DivorceCertificateData {
   header: HeaderData;
   divorcerName: BilingualValue;
@@ -153,6 +160,7 @@ export interface DivorceCertificateData {
   divorceeReligion: BilingualValue;
   divorceeFatherName: BilingualValue;
   divorceeFatherCnic: BilingualValue;
+  divorceLocation: DivorceLocationData;
   authorityForDivorce: BilingualValue;
   divorceDetail: BilingualValue;
   placeOfMarriage: BilingualValue;
@@ -383,6 +391,15 @@ export function createEmptyMarriageData(): MarriageCertificateData {
   };
 }
 
+export function defaultPakistanLocation(): DivorceLocationData {
+  return {
+    country: { en: "Pakistan", ur: "پاکستان" },
+    province: emptyBilingual(),
+    district: emptyBilingual(),
+    tehsil: emptyBilingual(),
+  };
+}
+
 export function createEmptyDivorceData(): DivorceCertificateData {
   return {
     header: emptyHeader(),
@@ -398,6 +415,7 @@ export function createEmptyDivorceData(): DivorceCertificateData {
     divorceeReligion: defaultIslam(),
     divorceeFatherName: emptyBilingual(),
     divorceeFatherCnic: emptyBilingual(),
+    divorceLocation: defaultPakistanLocation(),
     authorityForDivorce: emptyBilingual(),
     divorceDetail: emptyBilingual(),
     placeOfMarriage: emptyBilingual(),
@@ -422,25 +440,4 @@ export const CERTIFICATE_PREFIXES: Record<CertificateType, string> = {
   death: "DC",
   marriage: "MC",
   divorce: "DIV",
-};
-
-export const DEMO_BIRTH_DATA: BirthCertificateData = {
-  ...createEmptyBirthData(),
-  header: {
-    unionCouncil: { en: "UC-12 Model Town", ur: "یو سی-۱۲ ماڈل ٹاؤن" },
-    number: { en: "001234", ur: "۰۰۱۲۳۴" },
-    tehsil: { en: "Lahore City", ur: "لاہور سٹی" },
-    district: { en: "Lahore", ur: "لاہور" },
-  },
-  applicantName: { en: "Ahmed Khan", ur: "احمد خان" },
-  applicantCnic: { en: "42101-1234567-1", ur: "42101-1234567-1" },
-  childName: { en: "Muhammad Ali", ur: "محمد علی" },
-  relationOfChild: { en: "Son", ur: "بیٹا" },
-  religion: { en: "Islam", ur: "اسلام" },
-  gender: "male",
-  vaccinated: "yes",
-  placeOfBirth: "hospital",
-  dateOfBirth: { day: "15", month: "03", year: "2026" },
-  fatherName: { en: "Ahmed Khan", ur: "احمد خان" },
-  motherName: { en: "Fatima Khan", ur: "فاطمہ خان" },
 };

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { prisma } from "@/lib/db/prisma";
+import { prisma, sanitizeErrorMessage } from "@/lib/db/prisma";
 import { verifyPassword } from "@/lib/auth/password";
 import { createSessionToken, setSessionCookie } from "@/lib/auth/session";
 import { ensureDatabaseSeeded } from "@/lib/db/seed-helper";
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    const message = error?.message || String(error) || "Unknown login error";
+    const message = sanitizeErrorMessage(error);
     console.error("Login error:", error);
     return NextResponse.json(
       { error: "Login failed", message },

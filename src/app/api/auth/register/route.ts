@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { prisma } from "@/lib/db/prisma";
+import { prisma, sanitizeErrorMessage } from "@/lib/db/prisma";
 import { hashPassword } from "@/lib/auth/password";
 import { ensureDatabaseSeeded } from "@/lib/db/seed-helper";
 
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error: any) {
-    const message = error?.message || String(error) || "Unknown registration error";
+    const message = sanitizeErrorMessage(error);
     console.error("Registration error:", error);
     return NextResponse.json(
       { error: "Registration failed", message },

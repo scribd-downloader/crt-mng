@@ -49,6 +49,77 @@ export function DivorceCertificateForm({
         <BilingualField labelEn="Father's CNIC/Passport" labelUr="والد کا شناختی کارڈ" value={data.divorceeFatherCnic} onChange={(v) => set("divorceeFatherCnic", v)} activeLanguage={activeLanguage} type="cnic" />
       </FormSection>
 
+      <FormSection titleEn="Divorce Location / Country" titleUr="مقام طلاق / ملک">
+        <BilingualField
+          labelEn="Country"
+          labelUr="ملک"
+          value={data.divorceLocation?.country || { en: "Pakistan", ur: "پاکستان" }}
+          onChange={(v) =>
+            set("divorceLocation", {
+              ...(data.divorceLocation || {
+                country: { en: "Pakistan", ur: "پاکستان" },
+                province: { en: "", ur: "" },
+                district: { en: "", ur: "" },
+                tehsil: { en: "", ur: "" },
+              }),
+              country: v,
+            })
+          }
+          activeLanguage={activeLanguage}
+        />
+        <BilingualField
+          labelEn="Province / State"
+          labelUr="صوبہ / ریاست"
+          value={data.divorceLocation?.province || { en: "", ur: "" }}
+          onChange={(v) =>
+            set("divorceLocation", {
+              ...(data.divorceLocation || {
+                country: { en: "Pakistan", ur: "پاکستان" },
+                province: { en: "", ur: "" },
+                district: { en: "", ur: "" },
+                tehsil: { en: "", ur: "" },
+              }),
+              province: v,
+            })
+          }
+          activeLanguage={activeLanguage}
+        />
+        <BilingualField
+          labelEn="District"
+          labelUr="ضلع"
+          value={data.divorceLocation?.district || { en: "", ur: "" }}
+          onChange={(v) =>
+            set("divorceLocation", {
+              ...(data.divorceLocation || {
+                country: { en: "Pakistan", ur: "پاکستان" },
+                province: { en: "", ur: "" },
+                district: { en: "", ur: "" },
+                tehsil: { en: "", ur: "" },
+              }),
+              district: v,
+            })
+          }
+          activeLanguage={activeLanguage}
+        />
+        <BilingualField
+          labelEn="Tehsil"
+          labelUr="تحصیل"
+          value={data.divorceLocation?.tehsil || { en: "", ur: "" }}
+          onChange={(v) =>
+            set("divorceLocation", {
+              ...(data.divorceLocation || {
+                country: { en: "Pakistan", ur: "پاکستان" },
+                province: { en: "", ur: "" },
+                district: { en: "", ur: "" },
+                tehsil: { en: "", ur: "" },
+              }),
+              tehsil: v,
+            })
+          }
+          activeLanguage={activeLanguage}
+        />
+      </FormSection>
+
       <FormSection titleEn="Divorce Detail Information" titleUr="طلاق کے متعلق معلومات">
         <BilingualField labelEn="Authority for Divorce" labelUr="طلاق دینے والا اختیار" value={data.authorityForDivorce} onChange={(v) => set("authorityForDivorce", v)} activeLanguage={activeLanguage} />
         <BilingualField labelEn="Detail of Divorce and custody" labelUr="طلاق اور بچوں کی تفصیل" value={data.divorceDetail} onChange={(v) => set("divorceDetail", v)} activeLanguage={activeLanguage} />

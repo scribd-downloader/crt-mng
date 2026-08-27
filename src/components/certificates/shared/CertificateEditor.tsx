@@ -15,14 +15,13 @@ import {
   getNextDocumentNumber,
 } from "@/lib/indexeddb/database";
 import type { CertificateType, CertificateData, MarriageCertificateData } from "@/types/certificate";
-import { Download, Printer, Save, RotateCcw, FileImage, FileText, Maximize2, Eye, Edit3, X, Calculator } from "lucide-react";
+import { Printer, Save, RotateCcw, FileImage, FileText, Maximize2, Eye, Edit3, X, Calculator } from "lucide-react";
 import { AgeCalculatorModal } from "@/components/calculator/AgeCalculatorModal";
 
 interface CertificateEditorProps<T extends CertificateData> {
   type: CertificateType;
   title: string;
   initialData: T;
-  demoData?: T;
   FormComponent: React.ComponentType<{
     data: T;
     onChange: (data: T) => void;
@@ -35,7 +34,6 @@ export function CertificateEditor<T extends CertificateData>({
   type,
   title,
   initialData,
-  demoData,
   FormComponent,
   DocumentComponent,
 }: CertificateEditorProps<T>) {
@@ -154,10 +152,6 @@ export function CertificateEditor<T extends CertificateData>({
     }
   };
 
-  const loadDemo = () => {
-    if (demoData) setData(demoData);
-  };
-
   const handleUrduKey = (char: string) => {
     const active = document.activeElement as HTMLInputElement | HTMLTextAreaElement;
     if (!active || (active.tagName !== "INPUT" && active.tagName !== "TEXTAREA")) {
@@ -258,11 +252,6 @@ export function CertificateEditor<T extends CertificateData>({
             <Button size="sm" variant="ghost" onClick={handleReset}>
               <RotateCcw className="h-4 w-4 mr-1.5" /> Reset Form
             </Button>
-            {demoData && (
-              <Button size="sm" variant="ghost" onClick={loadDemo}>
-                <Download className="h-4 w-4 mr-1.5" /> Load Sample Data
-              </Button>
-            )}
           </div>
 
           <Button

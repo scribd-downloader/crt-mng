@@ -7,63 +7,72 @@ import { join } from "path";
 const prisma = new PrismaClient();
 
 function ensureLicenseKeys() {
-  const envPath = join(process.cwd(), ".env");
-  let envContent = existsSync(envPath) ? readFileSync(envPath, "utf8") : "";
-
-  if (
-    envContent.includes("LICENSE_PRIVATE_KEY=") &&
-    !envContent.match(/LICENSE_PRIVATE_KEY=""?\s*$/m) &&
-    envContent.includes("BEGIN PRIVATE KEY")
-  ) {
-    console.log("License keys already present in .env");
+  if (process.env.LICENSE_PRIVATE_KEY && process.env.LICENSE_PUBLIC_KEY) {
+    console.log("License keys present in environment variables");
     return;
   }
 
-  const { privateKey, publicKey } = generateKeyPairSync("rsa", {
-    modulusLength: 2048,
-    publicKeyEncoding: { type: "spki", format: "pem" },
-    privateKeyEncoding: { type: "pkcs8", format: "pem" },
-  });
+  try {
+    const envPath = join(process.cwd(), ".env");
+    let envContent = existsSync(envPath) ? readFileSync(envPath, "utf8") : "";
 
-  const privEscaped = privateKey.replace(/\n/g, "\\n");
-  const pubEscaped = publicKey.replace(/\n/g, "\\n");
-
-  if (!existsSync(envPath)) {
-    const example = existsSync(join(process.cwd(), ".env.example"))
-      ? readFileSync(join(process.cwd(), ".env.example"), "utf8")
-      : "";
-    envContent = example;
-  }
-
-  if (envContent.includes("LICENSE_PRIVATE_KEY=")) {
-    envContent = envContent.replace(
-      /LICENSE_PRIVATE_KEY=.*/,
-      `LICENSE_PRIVATE_KEY="${privEscaped}"`
-    );
-  } else {
-    envContent += `\nLICENSE_PRIVATE_KEY="${privEscaped}"\n`;
-  }
-
-  if (envContent.includes("LICENSE_PUBLIC_KEY=")) {
-    envContent = envContent.replace(
-      /LICENSE_PUBLIC_KEY=.*/,
-      `LICENSE_PUBLIC_KEY="${pubEscaped}"`
-    );
-  } else {
-    envContent += `LICENSE_PUBLIC_KEY="${pubEscaped}"\n`;
-  }
-
-  if (!envContent.includes("AUTH_SECRET=") || /AUTH_SECRET="change-this/.test(envContent)) {
-    const secret = randomBytes(32).toString("hex");
-    if (envContent.includes("AUTH_SECRET=")) {
-      envContent = envContent.replace(/AUTH_SECRET=.*/, `AUTH_SECRET="${secret}"`);
-    } else {
-      envContent += `AUTH_SECRET="${secret}"\n`;
+    if (
+      envContent.includes("LICENSE_PRIVATE_KEY=") &&
+      !envContent.match(/LICENSE_PRIVATE_KEY=""?\s*$/m) &&
+      envContent.includes("BEGIN PRIVATE KEY")
+    ) {
+      console.log("License keys already present in .env");
+      return;
     }
-  }
 
-  writeFileSync(envPath, envContent);
-  console.log("Generated LICENSE keys and wrote to .env");
+    const { privateKey, publicKey } = generateKeyPairSync("rsa", {
+      modulusLength: 2048,
+      publicKeyEncoding: { type: "spki", format: "pem" },
+      privateKeyEncoding: { type: "pkcs8", format: "pem" },
+    });
+
+    const privEscaped = privateKey.replace(/\n/g, "\\n");
+    const pubEscaped = publicKey.replace(/\n/g, "\\n");
+
+    if (!existsSync(envPath)) {
+      const example = existsSync(join(process.cwd(), ".env.example"))
+        ? readFileSync(join(process.cwd(), ".env.example"), "utf8")
+        : "";
+      envContent = example;
+    }
+
+    if (envContent.includes("LICENSE_PRIVATE_KEY=")) {
+      envContent = envContent.replace(
+        /LICENSE_PRIVATE_KEY=.*/,
+        `LICENSE_PRIVATE_KEY="${privEscaped}"`
+      );
+    } else {
+      envContent += `\nLICENSE_PRIVATE_KEY="${privEscaped}"\n`;
+    }
+
+    if (envContent.includes("LICENSE_PUBLIC_KEY=")) {
+      envContent = envContent.replace(
+        /LICENSE_PUBLIC_KEY=.*/,
+        `LICENSE_PUBLIC_KEY="${pubEscaped}"`
+      );
+    } else {
+      envContent += `LICENSE_PUBLIC_KEY="${pubEscaped}"\n`;
+    }
+
+    if (!envContent.includes("AUTH_SECRET=") || /AUTH_SECRET="change-this/.test(envContent)) {
+      const secret = randomBytes(32).toString("hex");
+      if (envContent.includes("AUTH_SECRET=")) {
+        envContent = envContent.replace(/AUTH_SECRET=.*/, `AUTH_SECRET="${secret}"`);
+      } else {
+        envContent += `AUTH_SECRET="${secret}"\n`;
+      }
+    }
+
+    writeFileSync(envPath, envContent);
+    console.log("Generated LICENSE keys and wrote to .env");
+  } catch (err) {
+    console.warn("Notice: Skipped writing .env in read-only environment:", err);
+  }
 }
 
 async function main() {

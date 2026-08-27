@@ -6,6 +6,7 @@ import {
   CertSection,
   CertHeader,
   CertFieldLine,
+  CertDoubleFieldLine,
   CertDateLine,
   CertAddressSection,
   CertOfficeUse,
@@ -38,6 +39,17 @@ export function DivorceCertificateDocument({
         <CertFieldLine labelEn="Religion" labelUr="مذہب" bilingual={data.divorceeReligion} />
         <CertFieldLine labelEn="Father's Name" labelUr="والد کا نام" bilingual={data.divorceeFatherName} />
         <CertFieldLine labelEn="Father's CNIC/Passport Number" labelUr="والد کا شناختی کارڈ یا پاسپورٹ نمبر" bilingual={data.divorceeFatherCnic} />
+      </CertSection>
+
+      <CertSection titleEn="Divorce Location / Country" titleUr="مقام طلاق / ملک">
+        <CertDoubleFieldLine
+          labelEn1="Country" labelUr1="ملک" bilingual1={data.divorceLocation?.country || { en: "Pakistan", ur: "پاکستان" }}
+          labelEn2="Province" labelUr2="صوبہ" bilingual2={data.divorceLocation?.province}
+        />
+        <CertDoubleFieldLine
+          labelEn1="District" labelUr1="ضلع" bilingual1={data.divorceLocation?.district}
+          labelEn2="Tehsil" labelUr2="تحصیل" bilingual2={data.divorceLocation?.tehsil}
+        />
       </CertSection>
 
       <CertSection titleEn="Divorce Detail Information" titleUr="طلاق کے متعلق معلومات">

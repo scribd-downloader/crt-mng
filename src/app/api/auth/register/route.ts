@@ -22,12 +22,13 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const dbUrl = process.env.DATABASE_URL;
-    if (!dbUrl || (process.env.VERCEL && dbUrl.includes("localhost"))) {
+    const isCloudServerless = !!(process.env.VERCEL || process.env.NETLIFY || process.env.AWS_EXECUTION_ENV);
+    if (!dbUrl || (isCloudServerless && (dbUrl.includes("localhost") || dbUrl.startsWith("file:")))) {
       return NextResponse.json(
         {
           error: "Database configuration error",
           message:
-            "DATABASE_URL is missing or set to localhost on Vercel. Please configure your PostgreSQL connection string in Vercel Settings -> Environment Variables.",
+            "DATABASE_URL is missing or set to localhost/file on Vercel/Netlify. Please configure your PostgreSQL connection string in your platform Settings -> Environment Variables.",
         },
         { status: 500 }
       );

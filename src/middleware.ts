@@ -17,7 +17,10 @@ const protectedRoutes = [
 const adminRoutes = ["/admin"];
 
 function getSecret(): Uint8Array {
-  const secret = process.env.AUTH_SECRET || "dev-secret-key-min-32-characters-long";
+  const secret = process.env.AUTH_SECRET;
+  if (!secret || secret.length < 32) {
+    return new TextEncoder().encode("default-fallback-auth-secret-min-32-chars-key");
+  }
   return new TextEncoder().encode(secret);
 }
 

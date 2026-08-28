@@ -15,6 +15,10 @@ const registerSchema = z.object({
   name: z.string().transform((val) => (val && val.trim()) || undefined).optional(),
 });
 
+export async function GET(request: NextRequest) {
+  return NextResponse.redirect(new URL("/register", request.url));
+}
+
 export async function POST(request: NextRequest) {
   try {
     const dbUrl = process.env.DATABASE_URL;

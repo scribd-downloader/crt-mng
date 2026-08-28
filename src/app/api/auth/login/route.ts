@@ -10,6 +10,10 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+export async function GET(request: NextRequest) {
+  return NextResponse.redirect(new URL("/login", request.url));
+}
+
 export async function POST(request: NextRequest) {
   try {
     const dbUrl = process.env.DATABASE_URL;
@@ -24,7 +28,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await ensureDatabaseSeeded();
+    try {
+      await ensureDatabaseSeeded();
+    } catch (seedErr) {
+      console.warn("Auto-seed notice during login:", seedErr);
+    }
 
     const body = await request.json();
     const parsed = loginSchema.safeParse(body);
@@ -71,3 +79,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

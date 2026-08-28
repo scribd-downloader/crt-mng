@@ -12,7 +12,7 @@ const registerSchema = z.object({
     .regex(/[A-Z]/, "Password must contain an uppercase letter")
     .regex(/[a-z]/, "Password must contain a lowercase letter")
     .regex(/[0-9]/, "Password must contain a number"),
-  name: z.string().min(1).optional(),
+  name: z.string().transform((val) => (val && val.trim()) || undefined).optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -29,7 +29,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await ensureDatabaseSeeded();
+    try {
+      await ensureDatabaseSeeded();
+    } catch (seedErr) {
+      console.warn("Auto-seed notice during registration:", seedErr);
+    }
 
     const body = await request.json();
     const parsed = registerSchema.safeParse(body);
@@ -88,3 +92,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

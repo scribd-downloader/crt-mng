@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin, isAuthError } from "@/lib/auth/guards";
-import { prisma } from "@/lib/db/prisma";
+import { prisma, sanitizeErrorMessage } from "@/lib/db/prisma";
 import { logAdminAction } from "@/lib/subscription/service";
 
 export const dynamic = "force-dynamic";
@@ -11,16 +11,21 @@ export async function GET() {
   const auth = await requireAdmin();
   if (isAuthError(auth)) return auth;
 
-  const plans = await prisma.plan.findMany({
-    orderBy: { sortOrder: "asc" },
-  });
+  try {
+    const plans = await prisma.plan.findMany({
+      orderBy: { sortOrder: "asc" },
+    });
 
-  const formattedPlans = plans.map((p) => ({
-    ...p,
-    features: typeof p.features === "string" ? JSON.parse(p.features || "[]") : p.features,
-  }));
+    const formattedPlans = plans.map((p) => ({
+      ...p,
+      features: typeof p.features === "string" ? JSON.parse(p.features || "[]") : p.features,
+    }));
 
-  return NextResponse.json({ plans: formattedPlans });
+    return NextResponse.json({ plans: formattedPlans });
+  } catch (error) {
+    const message = sanitizeErrorMessage(error);
+    return NextResponse.json({ error: "Failed to fetch plans", message }, { status: 500 });
+  }
 }
 
 const planSchema = z.object({

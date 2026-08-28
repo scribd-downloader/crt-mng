@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin, isAuthError } from "@/lib/auth/guards";
-import { prisma } from "@/lib/db/prisma";
+import { prisma, sanitizeErrorMessage } from "@/lib/db/prisma";
 import { logAdminAction } from "@/lib/subscription/service";
 
 export const dynamic = "force-dynamic";
@@ -11,18 +11,34 @@ export async function GET() {
   const auth = await requireAdmin();
   if (isAuthError(auth)) return auth;
 
-  const settings = await prisma.appSettings.findUnique({
-    where: { id: "default" },
-  });
+  try {
+    const settings = await prisma.appSettings.findUnique({
+      where: { id: "default" },
+    });
 
-  return NextResponse.json({
-    settings: settings ?? {
-      appName: process.env.NEXT_PUBLIC_APP_NAME || "Certificate Manager",
-      whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "",
-      offlineGraceDays: 7,
-      licenseValidityHours: 168,
-    },
-  });
+    return NextResponse.json({
+      settings: settings ?? {
+        appName: process.env.NEXT_PUBLIC_APP_NAME || "Certificate Manager",
+        whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "",
+        offlineGraceDays: 7,
+        licenseValidityHours: 168,
+      },
+    });
+  } catch (error) {
+    const message = sanitizeErrorMessage(error);
+    return NextResponse.json(
+      {
+        settings: {
+          appName: process.env.NEXT_PUBLIC_APP_NAME || "Certificate Manager",
+          whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "",
+          offlineGraceDays: 7,
+          licenseValidityHours: 168,
+        },
+        warning: message,
+      },
+      { status: 200 }
+    );
+  }
 }
 
 const settingsSchema = z.object({

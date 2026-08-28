@@ -21,8 +21,15 @@ export async function GET() {
   const auth = await requireAuth();
   if (isAuthError(auth)) return auth;
 
-  const status = await getSubscriptionStatus(auth.user.id);
-  return NextResponse.json(status);
+  try {
+    const status = await getSubscriptionStatus(auth.user.id);
+    return NextResponse.json(status);
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Failed to fetch license status", active: false, status: "EXPIRED" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: NextRequest) {

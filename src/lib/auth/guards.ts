@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { User, UserRole } from "@prisma/client";
-import { prisma } from "@/lib/db/prisma";
+import { prisma, sanitizeErrorMessage } from "@/lib/db/prisma";
 import { getSession, SessionPayload } from "@/lib/auth/session";
 
 export type AuthContext = {
@@ -20,15 +20,23 @@ export async function requireAuth(): Promise<AuthContext | NextResponse> {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.userId },
-  });
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId },
+    });
 
-  if (!user || !user.isActive) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user || !user.isActive) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    return { session, user };
+  } catch (error) {
+    const message = sanitizeErrorMessage(error);
+    return NextResponse.json(
+      { error: "Database error during authentication", message },
+      { status: 500 }
+    );
   }
-
-  return { session, user };
 }
 
 export async function requireAdmin(): Promise<AuthContext | NextResponse> {
@@ -41,3 +49,4 @@ export async function requireAdmin(): Promise<AuthContext | NextResponse> {
 
   return result;
 }
+

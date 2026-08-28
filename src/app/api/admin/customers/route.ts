@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin, isAuthError } from "@/lib/auth/guards";
-import { prisma } from "@/lib/db/prisma";
+import { prisma, sanitizeErrorMessage } from "@/lib/db/prisma";
 import {
   activateSubscription,
   extendSubscription,
@@ -15,37 +15,45 @@ export async function GET() {
   const auth = await requireAdmin();
   if (isAuthError(auth)) return auth;
 
-  const customers = await prisma.user.findMany({
-    where: { role: "USER" },
-    include: {
-      subscription: { include: { plan: true } },
-      licenses: { where: { isActive: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    const customers = await prisma.user.findMany({
+      where: { role: "USER" },
+      include: {
+        subscription: { include: { plan: true } },
+        licenses: { where: { isActive: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
 
-  return NextResponse.json({
-    customers: customers.map((c) => ({
-      id: c.id,
-      email: c.email,
-      name: c.name,
-      isActive: c.isActive,
-      createdAt: c.createdAt.toISOString(),
-      subscription: c.subscription
-        ? {
-            id: c.subscription.id,
-            status: c.subscription.status,
-            plan: c.subscription.plan.name,
-            planSlug: c.subscription.plan.slug,
-            startDate: c.subscription.startDate?.toISOString() ?? null,
-            expiryDate: c.subscription.expiryDate?.toISOString() ?? null,
-            deviceLimit: c.subscription.deviceLimit,
-            notes: c.subscription.notes,
-          }
-        : null,
-      activeDevices: c.licenses.length,
-    })),
-  });
+    return NextResponse.json({
+      customers: customers.map((c) => ({
+        id: c.id,
+        email: c.email,
+        name: c.name,
+        isActive: c.isActive,
+        createdAt: c.createdAt.toISOString(),
+        subscription: c.subscription
+          ? {
+              id: c.subscription.id,
+              status: c.subscription.status,
+              plan: c.subscription.plan.name,
+              planSlug: c.subscription.plan.slug,
+              startDate: c.subscription.startDate?.toISOString() ?? null,
+              expiryDate: c.subscription.expiryDate?.toISOString() ?? null,
+              deviceLimit: c.subscription.deviceLimit,
+              notes: c.subscription.notes,
+            }
+          : null,
+        activeDevices: c.licenses.length,
+      })),
+    });
+  } catch (error) {
+    const message = sanitizeErrorMessage(error);
+    return NextResponse.json(
+      { error: "Failed to fetch customers", message },
+      { status: 500 }
+    );
+  }
 }
 
 const activateSchema = z.object({

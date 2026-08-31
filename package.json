@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && prisma db push && next build",
+    "build": "prisma generate && prisma migrate deploy && next build",
     "start": "next start",
     "lint": "next lint",
     "db:generate": "prisma generate",
@@ -17,7 +17,6 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
-    "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^6.19.3",
     "@radix-ui/react-accordion": "^1.2.2",
     "@radix-ui/react-alert-dialog": "^1.1.4",

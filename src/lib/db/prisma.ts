@@ -21,6 +21,14 @@ export function sanitizeErrorMessage(error: unknown): string {
   // Log full error details for server logs silently
   console.error("[Database Error Trace]:", rawMsg);
 
+  const isTableMissingError =
+    rawMsg.includes("P2021") ||
+    rawMsg.includes("does not exist");
+
+  if (isTableMissingError) {
+    return "Database tables have not been created yet in your PostgreSQL database. Please run 'npx prisma db push' or check Vercel environment setup.";
+  }
+
   const isDbConnectionError =
     rawMsg.includes("Can't reach database server") ||
     rawMsg.includes("connect ECONNREFUSED") ||
@@ -30,13 +38,12 @@ export function sanitizeErrorMessage(error: unknown): string {
     rawMsg.includes("P1002") ||
     rawMsg.includes("P1003") ||
     rawMsg.includes("P1017") ||
-    rawMsg.includes("P2021") ||
     rawMsg.includes("P2022") ||
     rawMsg.includes("localhost:5432") ||
     /postgres(?:ql)?:\/\//i.test(rawMsg);
 
   if (isDbConnectionError) {
-    return "Database connection error. Please verify your production PostgreSQL configuration and database availability.";
+    return "Database connection error. Please verify your production PostgreSQL configuration, SSL mode (?sslmode=require), and database availability.";
   }
 
   // Strip sensitive credentials if present in generic error messages

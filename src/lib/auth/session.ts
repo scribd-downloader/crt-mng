@@ -12,11 +12,11 @@ export interface SessionPayload {
 }
 
 function getSecret(): Uint8Array {
-  const secret = process.env.AUTH_SECRET;
-  if (!secret || secret.length < 32) {
+  const rawSecret = process.env.AUTH_SECRET?.replace(/^["']|["']$/g, "").trim();
+  if (!rawSecret || rawSecret.length < 32) {
     return new TextEncoder().encode("default-fallback-auth-secret-min-32-chars-key");
   }
-  return new TextEncoder().encode(secret);
+  return new TextEncoder().encode(rawSecret);
 }
 
 export async function createSessionToken(

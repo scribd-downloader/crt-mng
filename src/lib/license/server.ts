@@ -14,13 +14,15 @@ const FALLBACK_PRIVATE_KEY = `-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9
 const FALLBACK_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAryeTPIEc3PWVNFVI/9lH\nrPFGkp4Cc+IdsAKVItVg3WWFuv16m8mtSaYcJQxMEeUBG0+Ov4JCKElMpUrAKrNB\nPFH09MK+PrB/FdijwA8q+u4rCJOCDvHSL4G3Q5pfN4fa2jjQ91QRM2NsvrvEXgey\nZLA/16jqhUENNit1e0Fs1oqqDjFB6KOUVf2eRCOdP7q+XALiOKiBP8PozEK0x6Bv\nZZdhbr7W9EH4jF74xR3zjfzYB8+aJ8e8ApDklW6O/ZI8t+yv2lqKXJDUK2gjY5/F\ndbuhMu+qTjwZUgNVrZjhuG4eDQNhoB621aG+aHSXs2atVX5vEZvwWaggFBziz5x3\nTQIDAQAB\n-----END PUBLIC KEY-----\n`;
 
 function getPrivateKeyPem(): string {
-  const key = process.env.LICENSE_PRIVATE_KEY || FALLBACK_PRIVATE_KEY;
-  return key.replace(/\\n/g, "\n");
+  const rawKey = (process.env.LICENSE_PRIVATE_KEY || FALLBACK_PRIVATE_KEY).trim();
+  const cleanKey = rawKey.replace(/^["']|["']$/g, "").trim();
+  return cleanKey.replace(/\\n/g, "\n");
 }
 
 function getPublicKeyPem(): string {
-  const key = process.env.LICENSE_PUBLIC_KEY || FALLBACK_PUBLIC_KEY;
-  return key.replace(/\\n/g, "\n");
+  const rawKey = (process.env.LICENSE_PUBLIC_KEY || FALLBACK_PUBLIC_KEY).trim();
+  const cleanKey = rawKey.replace(/^["']|["']$/g, "").trim();
+  return cleanKey.replace(/\\n/g, "\n");
 }
 
 export async function signLicense(payload: LicensePayload): Promise<string> {

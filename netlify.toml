@@ -1,5 +1,5 @@
 [build]
-  command = "prisma generate && prisma db push && next build"
+  command = "prisma generate && node scripts/db-push.js && next build"
   publish = ".next"
 
 [[plugins]]

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma, sanitizeErrorMessage } from "@/lib/db/prisma";
 import { verifyPassword } from "@/lib/auth/password";
-import { createSessionToken, setSessionCookie } from "@/lib/auth/session";
+import { createSessionToken, attachSessionCookie } from "@/lib/auth/session";
 import { ensureDatabaseSeeded } from "@/lib/db/seed-helper";
 
 const loginSchema = z.object({
@@ -60,9 +60,7 @@ export async function POST(request: NextRequest) {
       role: user.role,
     });
 
-    await setSessionCookie(token);
-
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       user: {
         id: user.id,
@@ -71,6 +69,8 @@ export async function POST(request: NextRequest) {
         role: user.role,
       },
     });
+
+    return attachSessionCookie(response, token);
   } catch (error: any) {
     const message = sanitizeErrorMessage(error);
     console.error("Login error:", error);

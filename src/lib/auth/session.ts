@@ -41,19 +41,43 @@ export async function verifySessionToken(
 }
 
 export async function setSessionCookie(token: string): Promise<void> {
-  const cookieStore = await cookies();
-  cookieStore.set(AUTH_COOKIE, token, {
+  try {
+    const cookieStore = await cookies();
+    cookieStore.set(AUTH_COOKIE, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: SESSION_DURATION,
+      path: "/",
+    });
+  } catch {
+    // Bypassed if headers are immutable in route handler
+  }
+}
+
+export function attachSessionCookie(response: any, token: string): any {
+  response.cookies.set(AUTH_COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     maxAge: SESSION_DURATION,
     path: "/",
   });
+  return response;
 }
 
 export async function clearSessionCookie(): Promise<void> {
-  const cookieStore = await cookies();
-  cookieStore.delete(AUTH_COOKIE);
+  try {
+    const cookieStore = await cookies();
+    cookieStore.delete(AUTH_COOKIE);
+  } catch {
+    // Bypassed if headers are immutable
+  }
+}
+
+export function attachClearSessionCookie(response: any): any {
+  response.cookies.delete(AUTH_COOKIE);
+  return response;
 }
 
 export async function getSession(): Promise<SessionPayload | null> {

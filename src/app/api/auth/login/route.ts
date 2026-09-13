@@ -5,6 +5,9 @@ import { verifyPassword } from "@/lib/auth/password";
 import { createSessionToken, attachSessionCookie } from "@/lib/auth/session";
 import { ensureDatabaseSeeded } from "@/lib/db/seed-helper";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),

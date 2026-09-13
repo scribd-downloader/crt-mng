@@ -30,7 +30,17 @@ export function sanitizeErrorMessage(error: unknown): string {
     rawMsg.includes("does not exist");
 
   if (isTableMissingError) {
-    return "Database tables have not been created yet in your PostgreSQL database. Please run 'npx prisma db push' or check Vercel environment setup.";
+    return "Database tables have not been created yet in your PostgreSQL database. Please run 'npx prisma db push' or check Vercel/Netlify environment setup.";
+  }
+
+  const isEngineError =
+    rawMsg.includes("Query engine") ||
+    rawMsg.includes("PrismaClientInitializationError") ||
+    rawMsg.includes("libquery_engine") ||
+    rawMsg.includes("cannot find module");
+
+  if (isEngineError) {
+    return "Prisma Query Engine binary missing on serverless host. Please verify '.npmrc' and netlify.toml included files.";
   }
 
   const isDbConnectionError =

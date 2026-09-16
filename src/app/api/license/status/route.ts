@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const validateSchema = z.object({
-  deviceId: z.string().uuid(),
+  deviceId: z.string().min(1),
   deviceName: z.string().optional(),
 });
 

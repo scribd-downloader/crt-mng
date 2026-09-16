@@ -10,7 +10,11 @@ export function generateDeviceId(): string {
   if (typeof window === "undefined") return "";
   let deviceId = localStorage.getItem(DEVICE_ID_KEY);
   if (!deviceId) {
-    deviceId = crypto.randomUUID();
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+      deviceId = crypto.randomUUID();
+    } else {
+      deviceId = "dev_" + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+    }
     localStorage.setItem(DEVICE_ID_KEY, deviceId);
   }
   return deviceId;

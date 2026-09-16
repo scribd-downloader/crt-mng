@@ -153,6 +153,12 @@ export async function activateSubscription(params: {
     include: { plan: true },
   });
 
+  // Reset existing device licenses so the activated user starts with clean device access
+  await prisma.license.updateMany({
+    where: { userId: params.user.id },
+    data: { isActive: false },
+  });
+
   await logAdminAction(
     params.adminId,
     params.user.id,

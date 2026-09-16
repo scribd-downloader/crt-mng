@@ -74,25 +74,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const existingLicenses = await prisma.license.findMany({
-      where: { userId: auth.user.id, isActive: true },
+    // Automatically deactivate stale device licenses that haven't validated in 24 hours
+    const STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000;
+    const cutoffDate = new Date(Date.now() - STALE_THRESHOLD_MS);
+    await prisma.license.updateMany({
+      where: {
+        userId: auth.user.id,
+        isActive: true,
+        lastValidated: { lt: cutoffDate },
+      },
+      data: { isActive: false },
     });
 
-    const deviceExists = existingLicenses.some((l) => l.deviceId === deviceId);
+    const activeLicenses = await prisma.license.findMany({
+      where: { userId: auth.user.id, isActive: true },
+      orderBy: { lastValidated: "desc" },
+    });
 
-    if (!deviceExists && existingLicenses.length >= subscription.deviceLimit) {
-      return NextResponse.json(
-        {
-          error: "Device limit reached for this account. Contact administrator to reset device licenses.",
-          active: false,
-          status: "DEVICE_LIMIT_REACHED",
-          reason: "DEVICE_LIMIT_EXCEEDED",
-          plan: subscription.plan.slug,
-          expiresAt: subscription.expiryDate.toISOString(),
-          daysRemaining: status.daysRemaining,
-        },
-        { status: 403 }
-      );
+    const deviceExists = activeLicenses.some((l) => l.deviceId === deviceId);
+
+    if (!deviceExists && activeLicenses.length >= subscription.deviceLimit) {
+      // Displace the oldest active license(s) to make room for the current authenticated subscriber session
+      const excessCount = activeLicenses.length - subscription.deviceLimit + 1;
+      const toDeactivate = activeLicenses.slice(activeLicenses.length - excessCount);
+      for (const lic of toDeactivate) {
+        await prisma.license.update({
+          where: { id: lic.id },
+          data: { isActive: false },
+        });
+      }
     }
 
     await prisma.license.upsert({
@@ -104,6 +114,7 @@ export async function POST(request: NextRequest) {
         deviceId,
         deviceName: deviceName ?? null,
         lastValidated: new Date(),
+        isActive: true,
       },
       update: {
         deviceName: deviceName ?? undefined,

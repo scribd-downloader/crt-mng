@@ -109,6 +109,15 @@ export function SubscriptionGuard({ children }: SubscriptionGuardProps) {
 
   useEffect(() => {
     validateLicense();
+
+    const handleOnline = () => {
+      validateLicense();
+    };
+
+    window.addEventListener("online", handleOnline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+    };
   }, [validateLicense]);
 
   if (isLoading) {

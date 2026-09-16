@@ -81,7 +81,7 @@ function LoginForm() {
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
-              placeholder="Enter your email address"
+              placeholder="user@example.com"
             />
           </div>
           <div className="space-y-2">
